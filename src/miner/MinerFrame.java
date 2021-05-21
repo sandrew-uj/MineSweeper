@@ -115,6 +115,7 @@ public class MinerFrame extends JFrame {
 
         addMouseListener(new MouseMiner());
         setGame();
+        pack();
         setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
     }
 
@@ -148,7 +149,6 @@ public class MinerFrame extends JFrame {
         add(statusPanel, new GBC(0, 0, 1, 1).setFill(GBC.BOTH));
         add(board, new GBC(0, 1, 1, 7).setAnchor(GBC.CENTER));
 
-        board.repaint();
         repaint();
     }
 
@@ -182,12 +182,6 @@ public class MinerFrame extends JFrame {
                 }
             }
         }
-
-        /*for (int y = 0; y < ROWS; ++y){
-            for (int x = 0; x < COLUMNS; ++x)
-                System.out.print(cellStates[y][x]+" ");
-            System.out.println();
-        }*/
     }
 
     private class Board extends JPanel{
@@ -207,6 +201,16 @@ public class MinerFrame extends JFrame {
         @Override
         public void paintComponent(Graphics g){
             super.paintComponent(g);
+            if (ComponentCells.length != cellStates.length){
+                this.removeAll();
+                setLayout(new GridLayout(ROWS, COLUMNS));
+                ComponentCells = new JLabel[ROWS][COLUMNS];
+                for (int i = 0; i < ROWS; ++i){
+                    for (int j = 0; j < COLUMNS; ++j){
+                        add(ComponentCells[i][j] = new JLabel(""));
+                    }
+                }
+            }
             for (int i = 0; i < ROWS; ++i){
                 for (int j = 0; j < COLUMNS; ++j){
                     ComponentCells[i][j].setIcon(imgs[visibleCellStates[i][j]]);
@@ -241,7 +245,7 @@ public class MinerFrame extends JFrame {
                         setMarks++;
                     }
                     minesField.setText(Integer.toString(MINES_COUNT-setMarks));
-                }else if (visibleCellStates[i][j] != MARKED){
+                }else if (visibleCellStates[i][j] == COVERED){
                     switch(cellStates[i][j]){
                         case EMPTY:
                             find_empties(i, j);
@@ -268,7 +272,6 @@ public class MinerFrame extends JFrame {
                             break;
                     }
                 }
-
                 if (inGame && openCells == ROWS*COLUMNS-MINES_COUNT){
                     inGame = false;
                     smile.setIcon(imgs[17]);
@@ -278,6 +281,7 @@ public class MinerFrame extends JFrame {
             }
             if (inGame)
                 smile.setIcon(imgs[15]);
+            System.out.println(openCells);
 
         }
 
@@ -290,8 +294,10 @@ public class MinerFrame extends JFrame {
     }
 
     void find_empties(int i, int j){
-        visibleCellStates[i][j] = cellStates[i][j];
-        openCells++;
+        if (visibleCellStates[i][j] == COVERED){
+            visibleCellStates[i][j] = cellStates[i][j];
+            openCells++;
+        }
 
         if (cellStates[i][j] == EMPTY){
             for (int y = i-1; y <= i+1; ++y){
