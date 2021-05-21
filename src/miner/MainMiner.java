@@ -9,7 +9,7 @@ public class MainMiner {
             var frame = new MinerFrame();
             frame.setTitle("Minesweeper");
             frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-            frame.setIconImage(frame.imgs[14]);
+            frame.setIconImage(frame.imgs[14].getImage());
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         });
