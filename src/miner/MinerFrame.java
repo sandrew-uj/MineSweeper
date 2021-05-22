@@ -2,9 +2,9 @@ package miner;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
-import javax.swing.border.EtchedBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -55,7 +55,6 @@ public class MinerFrame extends JFrame {
         setJMenuBar(menuBar);
 
         ActionListener modeListener = e->{
-            inGame = false;
             String mode = ((JRadioButtonMenuItem)e.getSource()).getText();
             switch(mode){
                 case "Easy":
@@ -96,9 +95,12 @@ public class MinerFrame extends JFrame {
         settings.add(expert);
 
         statusPanel = new JPanel();
+        statusPanel.setBackground(Color.LIGHT_GRAY);
 
-        minesField = new JTextField(2);
+        minesField = new JTextField(3);
         minesField.setEditable(false);
+        minesField.setForeground(Color.RED);
+        minesField.setBackground(Color.BLACK);
         statusPanel.add(minesField, BorderLayout.WEST);
 
         smile = new JButton(imgs[14]);
@@ -109,17 +111,31 @@ public class MinerFrame extends JFrame {
 
         timerField = new JTextField(3);
         timerField.setEditable(false);
+        timerField.setForeground(Color.RED);
+        timerField.setBackground(Color.BLACK);
         statusPanel.add(timerField, BorderLayout.EAST);
 
-        board = new Board();
+        String filename="src/resources/BittypixCountdown-92M2.ttf";
+
+        try{
+            var font = Font.createFont(Font.TRUETYPE_FONT, new File(filename));
+            font = font.deriveFont(Font.BOLD,32);
+
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            ge.registerFont(font);
+            timerField.setFont(font);
+            minesField.setFont(font);
+        }catch(Exception e){
+            System.out.println(e);
+        }
 
         addMouseListener(new MouseMiner());
         setGame();
-        pack();
         setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
     }
 
     void setGame(){
+        inGame = true;
         clickCount = 0;
         openCells = 0;
         setMarks = 0;
@@ -140,7 +156,12 @@ public class MinerFrame extends JFrame {
                 visibleCellStates[i][j] = COVERED;
                 cellStates[i][j] = EMPTY;
             }
+        if (board != null){
+            board.removeAll();
+            board.setVisible(false);
+        }
 
+        board = new Board();
         board.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED, Color.GRAY, Color.DARK_GRAY),
                 BorderFactory.createMatteBorder(BTHICKNESS, BTHICKNESS, BTHICKNESS, BTHICKNESS, Color.GRAY)));
         board.setSize(COLUMNS*CELL_LEN, ROWS*CELL_LEN);
@@ -152,8 +173,33 @@ public class MinerFrame extends JFrame {
         repaint();
     }
 
+    private class Board extends JPanel{
+        private JLabel[][] ComponentCells;
+
+        Board(){
+            setLayout(new GridLayout(ROWS, COLUMNS));
+            ComponentCells = new JLabel[ROWS][COLUMNS];
+            for (int i = 0; i < ROWS; ++i){
+                for (int j = 0; j < COLUMNS; ++j){
+                    add(ComponentCells[i][j] = new JLabel(""));
+                }
+            }
+        }
+
+
+        @Override
+        public void paintComponent(Graphics g){
+            super.paintComponent(g);
+            for (int i = 0; i < ROWS; ++i){
+                for (int j = 0; j < COLUMNS; ++j){
+                    ComponentCells[i][j].setIcon(imgs[visibleCellStates[i][j]]);
+                }
+            }
+
+        }
+    }
+
     void newGame(int firstI, int firstJ){
-        inGame = true;
         start = System.currentTimeMillis();
         timer = new Timer(1000, e->{
             long time = (System.currentTimeMillis()-start)/1000;
@@ -184,41 +230,6 @@ public class MinerFrame extends JFrame {
         }
     }
 
-    private class Board extends JPanel{
-        private JLabel[][] ComponentCells;
-
-        Board(){
-            setLayout(new GridLayout(ROWS, COLUMNS));
-            ComponentCells = new JLabel[ROWS][COLUMNS];
-            for (int i = 0; i < ROWS; ++i){
-                for (int j = 0; j < COLUMNS; ++j){
-                    add(ComponentCells[i][j] = new JLabel(""));
-                }
-            }
-        }
-
-
-        @Override
-        public void paintComponent(Graphics g){
-            super.paintComponent(g);
-            if (ComponentCells.length != cellStates.length){
-                this.removeAll();
-                setLayout(new GridLayout(ROWS, COLUMNS));
-                ComponentCells = new JLabel[ROWS][COLUMNS];
-                for (int i = 0; i < ROWS; ++i){
-                    for (int j = 0; j < COLUMNS; ++j){
-                        add(ComponentCells[i][j] = new JLabel(""));
-                    }
-                }
-            }
-            for (int i = 0; i < ROWS; ++i){
-                for (int j = 0; j < COLUMNS; ++j){
-                    ComponentCells[i][j].setIcon(imgs[visibleCellStates[i][j]]);
-                }
-            }
-
-        }
-    }
 
     private class MouseMiner extends MouseAdapter{
         @Override
@@ -232,7 +243,7 @@ public class MinerFrame extends JFrame {
             int j = x/CELL_LEN;
 
 
-            if (i >= 0 && j >= 0 && i < ROWS && j < COLUMNS){
+            if (i >= 0 && j >= 0 && i < ROWS && j < COLUMNS && inGame){
                 if (clickCount == 1)
                     newGame(i, j);
                 if (e.getButton() == MouseEvent.BUTTON3){
@@ -281,8 +292,6 @@ public class MinerFrame extends JFrame {
             }
             if (inGame)
                 smile.setIcon(imgs[15]);
-            System.out.println(openCells);
-
         }
 
         @Override
@@ -308,6 +317,5 @@ public class MinerFrame extends JFrame {
                 }
             }
         }
-
     }
 }
