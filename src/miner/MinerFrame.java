@@ -5,6 +5,7 @@ import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -46,7 +47,7 @@ public class MinerFrame extends JFrame {
     MinerFrame(){
         imgs = new ImageIcon[IMG_COUNT];
         for (int i = 0; i < IMG_COUNT; ++i){
-            imgs[i] = new ImageIcon("src/resources/"+i+".png");
+            imgs[i] = new ImageIcon(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/resources/"+i+".png")));
         }
 
         var menuBar = new JMenuBar();
@@ -115,10 +116,10 @@ public class MinerFrame extends JFrame {
         timerField.setBackground(Color.BLACK);
         statusPanel.add(timerField, BorderLayout.EAST);
 
-        String filename="src/resources/BittypixCountdown-92M2.ttf";
+        String filename="/resources/BittypixCountdown-92M2.ttf";
 
         try{
-            var font = Font.createFont(Font.TRUETYPE_FONT, new File(filename));
+            var font = Font.createFont(Font.TRUETYPE_FONT, getClass().getResourceAsStream(filename));
             font = font.deriveFont(Font.BOLD,32);
 
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
